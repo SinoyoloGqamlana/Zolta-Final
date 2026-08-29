@@ -5,8 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -o zolta.zip || true
-      - run: if [ -f Zolta/package.json ]; then cp -r Zolta/..; fi || true
+      - run: unzip -o zolta.zip || unzip -o Zolta.zip || true
+      - run: if [ -d Zolta ]; then cp -r Zolta/..; fi || true
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -19,8 +19,9 @@ jobs:
       - run: npm install @capacitor/core @capacitor/cli @capacitor/android
       - run: npx cap add android || true
       - run: npx cap copy android || true
-      - run: cd android && chmod +x gradlew &&./gradlew bundleRelease
-      - run: cd android &&./gradlew assembleRelease
+      - run: cd android && sed -i 's|file:.*|https://services.gradle.org/distributions/gradle-8.11.1-all.zip|' gradle/wrapper/gradle-wrapper.properties || true
+      - run: cd android && chmod +x gradlew &&./gradlew bundleRelease --no-daemon
+      - run: cd android &&./gradlew assembleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: ZOLTA-AAB-for-PlayStore
