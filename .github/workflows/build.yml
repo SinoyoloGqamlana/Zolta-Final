@@ -1,0 +1,49 @@
+name: Build ZOLTA APK + AAB
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip -o zolta.zip || unzip -o Zolta.zip || true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm install
+      - run: npm run build || npx vite build || true
+      - run: npm install @capacitor/core @capacitor/cli @capacitor/android
+      - run: npx cap add android || true
+      - run: npx cap copy android || true
+      - run: |
+          cd android/app
+          keytool -genkey -v -keystore my-release-key.keystore -alias zolta -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=ZOLTA, OU=ZOLTA, O=ZOLTA, L=PE, S=EC, C=ZA"
+      - run: |
+          python3 << 'PY'
+          path = "android/app/build.gradle"
+          txt = open(path).read()
+          # Fix 1: Ensure signingConfigs inside android block
+          if "storeFile file('my-release-key.keystore')" not in txt:
+              txt = txt.replace("android {", "android {\n signingConfigs {\n release {\n storeFile file('my-release-key.keystore')\n storePassword '123456'\n keyAlias 'zolta'\n keyPassword '123456'\n v1SigningEnabled true\n v2SigningEnabled true\n }\n }")
+          # Fix 2: Force release buildType to use it correctly
+          txt = txt.replace("signingConfig signingConfigs.debug", "signingConfig signingConfigs.release")
+          # Fix 3: Ensure compileSdk exists (Capacitor bug)
+          if "compileSdk" not in txt:
+              txt = txt.replace("android {", "android {\n compileSdk 34\n")
+          # Fix 4: Clean broken previous injections
+          txt = txt.replace("signingConfig signingConfigs.release\n signingConfig signingConfigs.release", "signingConfig signingConfigs.release")
+          open(path, "w").write(txt)
+          print(txt)
+          PY
+      - run: cd android && chmod +x gradlew &&./gradlew assembleRelease bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZOLTA-AAB-SIGNED-FIXED
+          path: android/app/build/outputs/bundle/release/*.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZOLTA-APK-SIGNED-FIXED
+          path: android/app/build/outputs/apk/release/*.apk
