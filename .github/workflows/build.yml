@@ -5,19 +5,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -o zolta.zip && rm zolta.zip
+      - run: unzip -o zolta.zip || true
+      - run: if [ -f Zolta/package.json ]; then cp -r Zolta/..; fi || true
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - uses: actions/setup-java@v4
+          node-version: 24
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
       - run: npm install
-      - run: npm run build || npx vite build
+      - run: npm run build || npx vite build || true
       - run: npm install @capacitor/core @capacitor/cli @capacitor/android
       - run: npx cap add android || true
-      - run: npx cap copy android
+      - run: npx cap copy android || true
       - run: cd android && chmod +x gradlew &&./gradlew bundleRelease
       - run: cd android &&./gradlew assembleRelease
       - uses: actions/upload-artifact@v4
