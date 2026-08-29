@@ -29,21 +29,26 @@ jobs:
             echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=" | base64 -d > "$f"
           done
       - run: |
-          keytool -genkey -v -keystore android/app/my-release-key.keystore -alias alias -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=ZOLTA, OU=ZOLTA, O=ZOLTA, L=PE, S=EC, C=ZA"
-          echo "MYAPP_RELEASE_STORE_FILE=my-release-key.keystore" >> android/gradle.properties
-          echo "MYAPP_RELEASE_KEY_ALIAS=alias" >> android/gradle.properties
-          echo "MYAPP_RELEASE_STORE_PASSWORD=123456" >> android/gradle.properties
-          echo "MYAPP_RELEASE_KEY_PASSWORD=123456" >> android/gradle.properties
+          cd android/app
+          keytool -genkey -v -keystore my-release-key.keystore -alias zolta -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=ZOLTA, OU=ZOLTA, O=ZOLTA, L=PE, S=EC, C=ZA"
       - run: |
           python3 << 'PY'
-          path="android/app/build.gradle"
-          s=open(path).read()
-          if "signingConfigs" not in s:
-              s=s.replace("android {", "android {\n signingConfigs {\n release {\n storeFile file('my-release-key.keystore')\n storePassword '123456'\n keyAlias 'alias'\n keyPassword '123456'\n }\n }")
-              s=s.replace("buildTypes {\n release {", "buildTypes {\n release {\n signingConfig signingConfigs.release")
-              open(path,"w").write(s)
+          p="android/app/build.gradle"
+          t=open(p).read()
+          # inject signingConfigs right after android {
+          if "MY SIGNING" not in t:
+              t=t.replace("android {", "android {\n signingConfigs {\n release {\n storeFile file('my-release-key.keystore')\n storePassword '123456'\n keyAlias 'zolta'\n keyPassword '123456'\n }\n } // MY SIGNING")
+              # force release to use it
+              t=t.replace("debug {", "debug {\n signingConfig signingConfigs.release\n }\n release {")
+              if "signingConfig signingConfigs.release" not in t.split("release {")[1].split("}")[0]:
+                  t=t.replace("release {\n", "release {\n signingConfig signingConfigs.release\n", 1)
+              # second occurrence for second buildType block if exists
+              t=t.replace("release {\n signingConfig", "release {\n signingConfig", 1)
+          open(p,"w").write(t)
+          print(open(p).read())
           PY
-      - run: cd android && chmod +x gradlew &&./gradlew bundleRelease assembleRelease --no-daemon
+      - run: cd android && chmod +x gradlew &&./gradlew assembleRelease bundleRelease --no-daemon
+      - run: ls -l android/app/build/outputs/apk/release/ && ls -l android/app/build/outputs/bundle/release/
       - uses: actions/upload-artifact@v4
         with:
           name: ZOLTA-AAB-for-PlayStore-SIGNED
