@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "186620600365",
+    "project_id": "zolta-45ce5",
+    "storage_bucket": "zolta-45ce5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:186620600365:android:b428642706e147afd2d8a4",
+        "android_client_info": {
+          "package_name": "com.zolta.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "186620600365-23osf666mk00011dq259lp5t7101sth6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zolta.app",
+            "certificate_hash": "1f39719bd47d5a7bd051c690f5b2c69ff69d82c2"
+          }
+        },
+        {
+          "client_id": "186620600365-hcv64bg8dk34sh8gddtdmli8b2i8enl3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMB1_XyoMxf7jxKLhaz6uJIINy0rDG7jA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "186620600365-hcv64bg8dk34sh8gddtdmli8b2i8enl3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
