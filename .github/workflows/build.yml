@@ -12,14 +12,14 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - run: npm install
       - run: npm run build || npx vite build || true
       - run: npm install @capacitor/core @capacitor/cli @capacitor/android
       - run: npx cap add android || true
       - run: npx cap copy android || true
       - run: rm android/gradle/wrapper/gradle-wrapper.properties
-      - run: echo distributionUrl=https://services.gradle.org/distributions/gradle-8.11.1-all.zip > android/gradle/wrapper/gradle-wrapper.properties
+      - run: echo distributionUrl=https://services.gradle.org/distributions/gradle-8.13-all.zip > android/gradle/wrapper/gradle-wrapper.properties
       - run: echo distributionBase=GRADLE_USER_HOME >> android/gradle/wrapper/gradle-wrapper.properties
       - run: echo distributionPath=wrapper/dists >> android/gradle/wrapper/gradle-wrapper.properties
       - run: echo zipStoreBase=GRADLE_USER_HOME >> android/gradle/wrapper/gradle-wrapper.properties
