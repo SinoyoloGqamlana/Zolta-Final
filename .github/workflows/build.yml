@@ -28,13 +28,27 @@ jobs:
           for f in $(find android/app/src/main/res -name "*.png"); do
             echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=" | base64 -d > "$f"
           done
-      - run: cd android && chmod +x gradlew &&./gradlew bundleRelease --no-daemon
-      - run: cd android &&./gradlew assembleRelease --no-daemon
+      - run: |
+          keytool -genkey -v -keystore android/app/my-release-key.keystore -alias alias -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=ZOLTA, OU=ZOLTA, O=ZOLTA, L=PE, S=EC, C=ZA"
+          echo "MYAPP_RELEASE_STORE_FILE=my-release-key.keystore" >> android/gradle.properties
+          echo "MYAPP_RELEASE_KEY_ALIAS=alias" >> android/gradle.properties
+          echo "MYAPP_RELEASE_STORE_PASSWORD=123456" >> android/gradle.properties
+          echo "MYAPP_RELEASE_KEY_PASSWORD=123456" >> android/gradle.properties
+      - run: |
+          python3 << 'PY'
+          path="android/app/build.gradle"
+          s=open(path).read()
+          if "signingConfigs" not in s:
+              s=s.replace("android {", "android {\n signingConfigs {\n release {\n storeFile file('my-release-key.keystore')\n storePassword '123456'\n keyAlias 'alias'\n keyPassword '123456'\n }\n }")
+              s=s.replace("buildTypes {\n release {", "buildTypes {\n release {\n signingConfig signingConfigs.release")
+              open(path,"w").write(s)
+          PY
+      - run: cd android && chmod +x gradlew &&./gradlew bundleRelease assembleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: ZOLTA-AAB-for-PlayStore
+          name: ZOLTA-AAB-for-PlayStore-SIGNED
           path: android/app/build/outputs/bundle/release/*.aab
       - uses: actions/upload-artifact@v4
         with:
-          name: ZOLTA-APK-for-Phone
+          name: ZOLTA-APK-for-Phone-SIGNED
           path: android/app/build/outputs/apk/release/*.apk
