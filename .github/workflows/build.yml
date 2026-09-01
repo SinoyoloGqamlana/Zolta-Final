@@ -1,0 +1,37 @@
+name: Build Fixed Zolta
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip
+        run: |
+          unzip -o "*.zip" || true
+          ls -la
+          if [ -d "zolta (1)" ]; then cp -r "zolta (1)/.".; rm -rf "zolta (1)"; fi
+          rm -f *.zip
+          ls -la
+      - name: Make keystore
+        run: |
+          rm -f android/app/release.keystore
+          keytool -genkey -v -keystore android/app/release.keystore -alias zolta -keyalg RSA -keysize 2048 -validity 10000 -storepass zolta123 -keypass zolta123 -dname "CN=Zolta, OU=Zolta, O=Zolta, L=EL, S=EC, C=ZA"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm run build
+      - run: npx cap sync android
+      - run: cd android && chmod +x gradlew &&./gradlew bundleRelease assembleRelease -Pandroid.injected.signing.store.file=$PWD/app/release.keystore -Pandroid.injected.signing.store.password=zolta123 -Pandroid.injected.signing.key.alias=zolta -Pandroid.injected.signing.key.password=zolta123
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zolta-AAB-FIXED
+          path: android/app/build/outputs/bundle/release/*.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zolta-APK-FIXED
+          path: android/app/build/outputs/apk/release/*.apk
