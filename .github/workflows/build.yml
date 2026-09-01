@@ -1,0 +1,36 @@
+name: Build Zolta AAB
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: |
+          unzip -o "*.zip" || true
+          if [ -d "zolta (1)" ]; then
+            mv "zolta (1)"/*.
+            mv "zolta (1)"/.*. 2>/dev/null || true
+            rmdir "zolta (1)"
+          fi
+          rm -f *.zip
+          ls -la
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npx cap sync android
+      - run: cd android && chmod +x gradlew &&./gradlew bundleRelease
+      - run: cd android && chmod +x gradlew &&./gradlew assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zolta-AAB
+          path: android/app/build/outputs/bundle/release/*.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zolta-APK
+          path: android/app/build/outputs/apk/release/*.apk
