@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "come.zolta.app",
-        "sha256_cert_fingerprints": ["D2:A3:EC:98:91:7A:AE:DD:5F:BE:6E:74:64:D9:AA:56:DC:DE:2A:3F:F4:58:09:A6:F4:DE:21:E7:3F:00:52:DB"]
-      }
-    }]
